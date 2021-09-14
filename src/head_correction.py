@@ -18,14 +18,14 @@ def main(msg, session):
     """
     # Get the service ALMotion.
     joint_states = msg.position
-    
+
     motion_service  = session.service("ALMotion")
 
     motion_service.setStiffnesses("Head", 1.0)
 
     # Example showing how to set angles, using a fraction of max speed
     names  = ["HeadYaw", "HeadPitch"]
-    angles  = [0.2, -0.2]
+    angles  = [0.0, 0.0]
     fractionMaxSpeed  = 0.2
     motion_service.setAngles(names, angles, fractionMaxSpeed)
 
