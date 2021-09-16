@@ -8,22 +8,20 @@ import argparse
 import sys
 import time
 import rospy
-from sensor_msgs.msg import JointState
+from std_srvs.srv import Empty
 
-#session = None
 
-def main(msg, session):
+def main(session):
     """
     This example uses the setAngles method.
     """
     # Get the service ALMotion.
-    joint_states = msg.position
 
     motion_service  = session.service("ALMotion")
 
     motion_service.setStiffnesses("Head", 1.0)
 
-    # Example showing how to set angles, using a fraction of max speed
+    #set angles, using a fraction of max speed
     names  = ["HeadYaw", "HeadPitch"]
     angles  = [0.0, 0.0]
     fractionMaxSpeed  = 0.2
@@ -31,10 +29,10 @@ def main(msg, session):
 
     time.sleep(3.0)
     motion_service.setStiffnesses("Head", 0.0)
+    rospy.loginfo("Moved head to position 0.0")
 
 
 if __name__ == "__main__":
-    #global session
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", type=str, default="127.0.0.1",
                         help="Robot IP address. On robot or Local Naoqi: use '127.0.0.1'.")
@@ -49,6 +47,7 @@ if __name__ == "__main__":
         print ("Can't connect to Naoqi at ip \"" + args.ip + "\" on port " + str(args.port) +".\n"
                "Please check your script arguments. Run with -h option for help.")
         sys.exit(1)
-    rospy.init_node("pepper_head_correction")
-    rospy.Subscriber("/pepper_robot/naoqi_driver/joint", JointState, lambda msg: main(msg, session))
-    #main(session)
+    rospy.init_node("head_movement")
+    s = rospy.Service("move_head_straight", Empty, lambda msg: main(session))
+    rospy.loginfo("Service is running")
+    rospy.spin()
