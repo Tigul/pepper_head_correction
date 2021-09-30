@@ -9,9 +9,10 @@ import sys
 import time
 import rospy
 from std_srvs.srv import Empty
+from pepper_behaviour_srvs.srv import MoveArm, MoveHead, Speak
 
 
-def main(session):
+def move_head(session, msg):
     """
     This example uses the setAngles method.
     """
@@ -28,9 +29,34 @@ def main(session):
     motion_service.setAngles(names, angles, fractionMaxSpeed)
 
     time.sleep(3.0)
-    motion_service.setStiffnesses("Head", 0.0)
-    rospy.loginfo("Moved head to position 0.0")
+    motion_service.setStiffnesses("Head", 0.5)
+    rospy.loginfo("Moved head to position 0.5")
+    return "ok"
 
+def move_arm(session, msg):
+    motion_service  = session.service("ALMotion")
+    arm = "L" if msg.arm == "left" else "R"
+    joint_poses = msg.positions
+
+    motion_service.setStiffnesses(arm + "Arm", 1.0)
+
+    neutral_names = ['ShoulderPitch', 'ShoulderRoll', 'ElbowYaw', 'ElbowRoll', 'WristYaw']
+    names = [arm + n for n in neutral_names]
+
+    fractionMaxSpeed = 0.2
+
+    motion_service.setAngles(names, joint_poses, fractionMaxSpeed)
+    time.sleep(3.0)
+    motion_service.setStiffnesses(arm + "Arm", 0.5)
+    rospy.loginfo(f"Moved {msg.arm} Arm")
+    return "ok"
+
+def speak(session, msg):
+    tts = session.service("ALTextToSpeech")
+
+    tts.say(msg.text)
+
+    return "ok"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -47,7 +73,10 @@ if __name__ == "__main__":
         print ("Can't connect to Naoqi at ip \"" + args.ip + "\" on port " + str(args.port) +".\n"
                "Please check your script arguments. Run with -h option for help.")
         sys.exit(1)
-    rospy.init_node("head_movement")
-    s = rospy.Service("move_head_straight", Empty, lambda msg: main(session))
+    rospy.init_node("pepper_behaviour")
+    rospy.Service("move_head_straight", MoveHead, lambda msg: move_head(session, msg))
+    rospy.Service("move_arm", MoveArm, lambda msg: move_arm(session, msg))
+    rospy.Service("speak", Speak, lambda msg: speak(session, msg))
+
     rospy.loginfo("Service is running")
     rospy.spin()
