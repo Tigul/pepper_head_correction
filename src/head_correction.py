@@ -93,7 +93,7 @@ if __name__ == "__main__":
                "Please check your script arguments. Run with -h option for help.")
         sys.exit(1)
     rospy.init_node("pepper_behaviour")
-    rospy.Service("move_head_straight", MoveHead, lambda msg: move_head(session, msg))
+    rospy.Service("move_head", MoveHead, lambda msg: move_head(session, msg))
     rospy.Service("move_arm", MoveArm, lambda msg: move_arm(session, msg))
     rospy.Service("speak", Speak, lambda msg: speak(session, msg))
 
